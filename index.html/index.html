@@ -146,8 +146,8 @@
       width: 100%;
       height: 100%;
       display: block;
-      -webkit-mask-image: radial-gradient(ellipse 86% 78% at 50% 50%, #000 52%, transparent 100%);
-      mask-image: radial-gradient(ellipse 86% 78% at 50% 50%, #000 52%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 108% 102% at 50% 50%, #000 80%, transparent 100%);
+      mask-image: radial-gradient(ellipse 108% 102% at 50% 50%, #000 80%, transparent 100%);
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
       -webkit-mask-size: 100% 100%;
@@ -366,8 +366,8 @@
       .copy-item h2 { font-size: clamp(32px, 10vw, 54px); }
       .copy-item p { font-size: clamp(15px, 4.4vw, 20px); }
       #frameCanvas {
-        -webkit-mask-image: radial-gradient(ellipse 96% 88% at 50% 50%, #000 58%, transparent 100%);
-        mask-image: radial-gradient(ellipse 96% 88% at 50% 50%, #000 58%, transparent 100%);
+        -webkit-mask-image: radial-gradient(ellipse 100% 96% at 50% 50%, #000 74%, transparent 100%);
+        mask-image: radial-gradient(ellipse 100% 96% at 50% 50%, #000 74%, transparent 100%);
       }
     }
   </style>
@@ -477,7 +477,19 @@
 
       const CONFIG = {
         mode: 'zip',
-        zipUrl: '../ezgif-7108051e0c153ae9-jpg.zip',
+
+        // The loader tries these paths IN ORDER and uses the first one that exists.
+        // So it works whether your archive is in assets/ or sits at the repo root.
+        zipUrls: [
+          'assets/burger-frames.zip',
+          'burger-frames.zip',
+          '../assets/burger-frames.zip',
+          '../burger-frames.zip',
+          '../ezgif-7108051e0c153ae9-jpg.zip',
+          'ezgif-7108051e0c153ae9-jpg.zip'
+        ],
+
+        // Settings for mode === 'folder' (not used while mode is 'zip')
         framesPath: 'frames/',
         prefix: 'frame_',
         digits: 3,
@@ -485,6 +497,7 @@
         startFrame: 0,
         totalFrames: 0,
         pxPerFrame: 14,
+
         autoDetect: true,
         candidates: {
           prefixes: ['frame_', 'frame-', 'ezgif-frame-', 'ezgif-', '', 'img_', 'image_'],
@@ -578,11 +591,11 @@
 
         onProgress(0.02);
 
-        const zipBlob = await fetchBlobWithProgress(CONFIG.zipUrl, (p) => {
+        const downloaded = await downloadFirstAvailable(CONFIG.zipUrls, (p) => {
           onProgress(0.02 + p * 0.35);
         });
 
-        const zip = await JSZip.loadAsync(zipBlob);
+        const zip = await JSZip.loadAsync(downloaded.blob);
         onProgress(0.4);
 
         const entries = Object.values(zip.files).filter(isImageEntry);
@@ -593,7 +606,7 @@
 
         const meta = {
           source: 'zip',
-          url: CONFIG.zipUrl,
+          url: downloaded.url,
           count: selected.length,
           names: selected.map((entry) => basename(entry.name))
         };
@@ -613,6 +626,15 @@
         }
 
         return { images: loadedImages, meta };
+      }
+
+      async function downloadFirstAvailable(urls, onProgress) {
+        for (const url of urls) {
+          const blob = await fetchBlobWithProgress(url, onProgress);
+          if (blob) return { blob, url };
+        }
+
+        throw new Error('Cannot download ZIP. Tried: ' + urls.join(', '));
       }
 
       function isImageEntry(entry) {
@@ -737,11 +759,15 @@
       }
 
       async function fetchBlobWithProgress(url, onProgress) {
-        const response = await fetch(url, { cache: 'no-store' });
+        let response;
 
-        if (!response.ok) {
-          throw new Error('Cannot download ZIP: HTTP ' + response.status);
+        try {
+          response = await fetch(url, { cache: 'no-store' });
+        } catch (_) {
+          return null;
         }
+
+        if (!response.ok) return null;
 
         const totalHeader = response.headers.get('Content-Length');
         const total = totalHeader ? Number(totalHeader) : 0;
@@ -1158,9 +1184,16 @@
 
         if (!iw || !ih) return;
 
-        const isMobile = window.innerWidth < 768;
-        const fit = Math.min(cw / iw, ch / ih);
-        const scale = fit * (isMobile ? 0.96 : 0.82);
+        const viewportAspect = cw / ch;
+
+        let scale;
+        if (viewportAspect >= 1.15) {
+          // Landscape (desktop / laptop): fill the whole screen (cover).
+          scale = Math.max(cw / iw, ch / ih);
+        } else {
+          // Portrait (phone): keep the whole exploded view visible.
+          scale = Math.min(cw / iw, ch / ih);
+        }
 
         const w = iw * scale;
         const h = ih * scale;
