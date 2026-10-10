@@ -85,6 +85,7 @@
       font-size: 12px;
       line-height: 1.45;
       color: #ff9f0a;
+      word-break: break-all;
     }
 
     .topbar {
@@ -567,7 +568,22 @@
 
       const CONFIG = {
         mode: 'zip',
-        zipUrl: 'assets/burger-frames.zip',
+
+        // The loader tries these paths IN ORDER and uses the first one that exists.
+        // Relative to the page, so both layouts work:
+        //   repo/index.html + repo/assets/burger-frames.zip
+        //   repo/index.html/index.html + repo/ezgif-....zip  (your current layout)
+        zipUrls: [
+          'assets/burger-frames.zip',
+          '../assets/burger-frames.zip',
+          'burger-frames.zip',
+          '../burger-frames.zip',
+          '../ezgif-7108051e0c153ae9-jpg.zip',
+          'ezgif-7108051e0c153ae9-jpg.zip',
+          '../frames.zip',
+          'frames.zip'
+        ],
+
         framesPath: 'frames/',
         prefix: 'frame_',
         digits: 3,
@@ -600,6 +616,7 @@
       let images = [];
       let currentFrame = 0;
       let copyItems = [];
+      let progressMax = 0;
       const objectUrls = [];
 
       const canvas = dom.canvas;
@@ -668,9 +685,28 @@
 
         onProgress(0.02);
 
-        const zipBlob = await fetchBlobWithProgress(CONFIG.zipUrl, (p) => {
-          onProgress(0.02 + p * 0.35);
-        });
+        let zipBlob = null;
+        let usedUrl = null;
+        const tried = [];
+
+        for (const url of CONFIG.zipUrls) {
+          tried.push(url);
+          try {
+            zipBlob = await fetchBlobWithProgress(url, (p) => {
+              onProgress(0.02 + p * 0.35);
+            });
+            usedUrl = url;
+            break;
+          } catch (_) {
+            // Try the next candidate path.
+          }
+        }
+
+        if (!zipBlob) {
+          throw new Error('ZIP not found. Tried: ' + tried.join(' | '));
+        }
+
+        console.info('[scroll-frames] using zip at', usedUrl);
 
         const zip = await JSZip.loadAsync(zipBlob);
         onProgress(0.4);
@@ -683,7 +719,7 @@
 
         const meta = {
           source: 'zip',
-          url: CONFIG.zipUrl,
+          url: usedUrl,
           count: selected.length,
           names: selected.map((entry) => basename(entry.name))
         };
@@ -1375,14 +1411,14 @@
       }
 
       function setProgress(progress) {
-        const value = Math.max(0, Math.min(1, progress));
+        progressMax = Math.max(progressMax, Math.min(1, progress));
 
         if (dom.loaderBar) {
-          dom.loaderBar.style.transform = `scaleX(${value})`;
+          dom.loaderBar.style.transform = `scaleX(${progressMax})`;
         }
 
         if (dom.loaderPercent) {
-          dom.loaderPercent.textContent = `${Math.round(value * 100)}%`;
+          dom.loaderPercent.textContent = `${Math.round(progressMax * 100)}%`;
         }
       }
 
