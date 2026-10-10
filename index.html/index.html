@@ -148,8 +148,8 @@
       height: 100%;
       display: block;
       filter: saturate(1.06) contrast(1.05) blur(0.4px);
-      -webkit-mask-image: radial-gradient(ellipse 100% 96% at 50% 50%, #000 70%, transparent 100%);
-      mask-image: radial-gradient(ellipse 100% 96% at 50% 50%, #000 70%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 96% 92% at 50% 50%, #000 66%, transparent 98%);
+      mask-image: radial-gradient(ellipse 96% 92% at 50% 50%, #000 66%, transparent 98%);
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
       -webkit-mask-size: 100% 100%;
@@ -164,10 +164,10 @@
 
     .fx-edgeblur {
       z-index: 1;
-      -webkit-backdrop-filter: blur(8px) brightness(0.96);
-      backdrop-filter: blur(8px) brightness(0.96);
-      -webkit-mask-image: radial-gradient(ellipse 68% 60% at 50% 50%, transparent 46%, #000 86%);
-      mask-image: radial-gradient(ellipse 68% 60% at 50% 50%, transparent 46%, #000 86%);
+      -webkit-backdrop-filter: blur(9px) brightness(0.95);
+      backdrop-filter: blur(9px) brightness(0.95);
+      -webkit-mask-image: radial-gradient(ellipse 64% 56% at 50% 50%, transparent 44%, #000 84%);
+      mask-image: radial-gradient(ellipse 64% 56% at 50% 50%, transparent 44%, #000 84%);
     }
 
     .fx-grade {
@@ -182,29 +182,9 @@
     .fx-vignette {
       z-index: 2;
       background:
-        linear-gradient(to right, rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.25) 12%, transparent 26%, transparent 74%, rgba(0, 0, 0, 0.25) 88%, rgba(0, 0, 0, 0.60)),
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.22) 10%, transparent 22%, transparent 78%, rgba(0, 0, 0, 0.22) 90%, rgba(0, 0, 0, 0.55)),
-        radial-gradient(ellipse 82% 76% at 50% 50%, transparent 42%, rgba(0, 0, 0, 0.38) 72%, rgba(0, 0, 0, 0.78) 100%);
-    }
-
-    .fx-grain {
-      z-index: 3;
-      opacity: 0.09;
-      mix-blend-mode: overlay;
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-      background-size: 240px 240px;
-      animation: grainShift 0.8s steps(1) infinite;
-    }
-
-    @keyframes grainShift {
-      0%, 100% { background-position: 0 0; }
-      12% { background-position: -60px 40px; }
-      25% { background-position: 40px -70px; }
-      37% { background-position: -70px -40px; }
-      50% { background-position: 70px 60px; }
-      62% { background-position: -40px 70px; }
-      75% { background-position: 60px -40px; }
-      87% { background-position: -60px -60px; }
+        linear-gradient(to right, rgba(0, 0, 0, 0.80), rgba(0, 0, 0, 0.45) 14%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.45) 86%, rgba(0, 0, 0, 0.80)),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.40) 12%, transparent 26%, transparent 74%, rgba(0, 0, 0, 0.40) 88%, rgba(0, 0, 0, 0.75)),
+        radial-gradient(ellipse 78% 70% at 50% 50%, transparent 36%, rgba(0, 0, 0, 0.50) 68%, rgba(0, 0, 0, 0.88) 100%);
     }
 
     .fx-sheen {
@@ -436,7 +416,6 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .fx-grain,
       .fx-sheen,
       .scroll-hint svg {
         animation: none;
@@ -452,14 +431,14 @@
         mask-image: radial-gradient(ellipse 100% 96% at 50% 50%, #000 74%, transparent 100%);
       }
       .fx-edgeblur {
-        -webkit-mask-image: radial-gradient(ellipse 78% 68% at 50% 50%, transparent 52%, #000 90%);
-        mask-image: radial-gradient(ellipse 78% 68% at 50% 50%, transparent 52%, #000 90%);
+        -webkit-mask-image: radial-gradient(ellipse 76% 66% at 50% 50%, transparent 50%, #000 88%);
+        mask-image: radial-gradient(ellipse 76% 66% at 50% 50%, transparent 50%, #000 88%);
       }
       .fx-vignette {
         background:
-          linear-gradient(to right, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.18) 10%, transparent 22%, transparent 78%, rgba(0, 0, 0, 0.18) 90%, rgba(0, 0, 0, 0.45)),
-          linear-gradient(to bottom, rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.20) 10%, transparent 20%, transparent 80%, rgba(0, 0, 0, 0.20) 90%, rgba(0, 0, 0, 0.50)),
-          radial-gradient(ellipse 88% 80% at 50% 50%, transparent 46%, rgba(0, 0, 0, 0.32) 74%, rgba(0, 0, 0, 0.70) 100%);
+          linear-gradient(to right, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.35) 12%, transparent 26%, transparent 74%, rgba(0, 0, 0, 0.35) 88%, rgba(0, 0, 0, 0.65)),
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.70), rgba(0, 0, 0, 0.38) 12%, transparent 24%, transparent 76%, rgba(0, 0, 0, 0.38) 88%, rgba(0, 0, 0, 0.70)),
+          radial-gradient(ellipse 84% 76% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.45) 70%, rgba(0, 0, 0, 0.82) 100%);
       }
     }
   </style>
@@ -491,7 +470,6 @@
       <div class="fx fx-edgeblur" aria-hidden="true"></div>
       <div class="fx fx-grade" aria-hidden="true"></div>
       <div class="fx fx-vignette" aria-hidden="true"></div>
-      <div class="fx fx-grain" aria-hidden="true"></div>
       <div class="fx fx-sheen" aria-hidden="true"></div>
 
       <div class="copy" id="copy">
@@ -589,10 +567,9 @@
         ],
 
         // Frame size relative to the screen.
-        // 1 = fills the screen, 0.9 = 10% smaller (dark margins hidden by the vignette).
-        // Lower value = smaller animation = soft pixels less noticeable.
-        scaleLandscape: 0.9,
-        scalePortrait: 0.95,
+        // 1 = fills the screen. Lower = smaller animation = soft pixels less noticeable.
+        scaleLandscape: 0.8,
+        scalePortrait: 0.88,
 
         framesPath: 'frames/',
         prefix: 'frame_',
@@ -1298,10 +1275,8 @@
 
         let scale;
         if (viewportAspect >= 1.15) {
-          // Landscape: near-full screen, slightly reduced to hide soft pixels.
           scale = Math.max(cw / iw, ch / ih) * CONFIG.scaleLandscape;
         } else {
-          // Portrait: whole exploded view visible, slightly reduced.
           scale = Math.min(cw / iw, ch / ih) * CONFIG.scalePortrait;
         }
 
