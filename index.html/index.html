@@ -148,8 +148,8 @@
       height: 100%;
       display: block;
       filter: saturate(1.06) contrast(1.05) blur(0.4px);
-      -webkit-mask-image: radial-gradient(ellipse 108% 102% at 50% 50%, #000 80%, transparent 100%);
-      mask-image: radial-gradient(ellipse 108% 102% at 50% 50%, #000 80%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 100% 96% at 50% 50%, #000 70%, transparent 100%);
+      mask-image: radial-gradient(ellipse 100% 96% at 50% 50%, #000 70%, transparent 100%);
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
       -webkit-mask-size: 100% 100%;
@@ -164,10 +164,10 @@
 
     .fx-edgeblur {
       z-index: 1;
-      -webkit-backdrop-filter: blur(7px) brightness(0.97);
-      backdrop-filter: blur(7px) brightness(0.97);
-      -webkit-mask-image: radial-gradient(ellipse 72% 64% at 50% 50%, transparent 50%, #000 90%);
-      mask-image: radial-gradient(ellipse 72% 64% at 50% 50%, transparent 50%, #000 90%);
+      -webkit-backdrop-filter: blur(8px) brightness(0.96);
+      backdrop-filter: blur(8px) brightness(0.96);
+      -webkit-mask-image: radial-gradient(ellipse 68% 60% at 50% 50%, transparent 46%, #000 86%);
+      mask-image: radial-gradient(ellipse 68% 60% at 50% 50%, transparent 46%, #000 86%);
     }
 
     .fx-grade {
@@ -182,8 +182,9 @@
     .fx-vignette {
       z-index: 2;
       background:
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.38), transparent 16%, transparent 84%, rgba(0, 0, 0, 0.46)),
-        radial-gradient(ellipse 78% 72% at 50% 50%, transparent 52%, rgba(0, 0, 0, 0.30) 80%, rgba(0, 0, 0, 0.62) 100%);
+        linear-gradient(to right, rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.25) 12%, transparent 26%, transparent 74%, rgba(0, 0, 0, 0.25) 88%, rgba(0, 0, 0, 0.60)),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.22) 10%, transparent 22%, transparent 78%, rgba(0, 0, 0, 0.22) 90%, rgba(0, 0, 0, 0.55)),
+        radial-gradient(ellipse 82% 76% at 50% 50%, transparent 42%, rgba(0, 0, 0, 0.38) 72%, rgba(0, 0, 0, 0.78) 100%);
     }
 
     .fx-grain {
@@ -451,8 +452,14 @@
         mask-image: radial-gradient(ellipse 100% 96% at 50% 50%, #000 74%, transparent 100%);
       }
       .fx-edgeblur {
-        -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 55%, #000 92%);
-        mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 55%, #000 92%);
+        -webkit-mask-image: radial-gradient(ellipse 78% 68% at 50% 50%, transparent 52%, #000 90%);
+        mask-image: radial-gradient(ellipse 78% 68% at 50% 50%, transparent 52%, #000 90%);
+      }
+      .fx-vignette {
+        background:
+          linear-gradient(to right, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.18) 10%, transparent 22%, transparent 78%, rgba(0, 0, 0, 0.18) 90%, rgba(0, 0, 0, 0.45)),
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.20) 10%, transparent 20%, transparent 80%, rgba(0, 0, 0, 0.20) 90%, rgba(0, 0, 0, 0.50)),
+          radial-gradient(ellipse 88% 80% at 50% 50%, transparent 46%, rgba(0, 0, 0, 0.32) 74%, rgba(0, 0, 0, 0.70) 100%);
       }
     }
   </style>
@@ -570,9 +577,6 @@
         mode: 'zip',
 
         // The loader tries these paths IN ORDER and uses the first one that exists.
-        // Relative to the page, so both layouts work:
-        //   repo/index.html + repo/assets/burger-frames.zip
-        //   repo/index.html/index.html + repo/ezgif-....zip  (your current layout)
         zipUrls: [
           'assets/burger-frames.zip',
           '../assets/burger-frames.zip',
@@ -583,6 +587,12 @@
           '../frames.zip',
           'frames.zip'
         ],
+
+        // Frame size relative to the screen.
+        // 1 = fills the screen, 0.9 = 10% smaller (dark margins hidden by the vignette).
+        // Lower value = smaller animation = soft pixels less noticeable.
+        scaleLandscape: 0.9,
+        scalePortrait: 0.95,
 
         framesPath: 'frames/',
         prefix: 'frame_',
@@ -1288,9 +1298,11 @@
 
         let scale;
         if (viewportAspect >= 1.15) {
-          scale = Math.max(cw / iw, ch / ih);
+          // Landscape: near-full screen, slightly reduced to hide soft pixels.
+          scale = Math.max(cw / iw, ch / ih) * CONFIG.scaleLandscape;
         } else {
-          scale = Math.min(cw / iw, ch / ih);
+          // Portrait: whole exploded view visible, slightly reduced.
+          scale = Math.min(cw / iw, ch / ih) * CONFIG.scalePortrait;
         }
 
         const w = iw * scale;
