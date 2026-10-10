@@ -1,1 +1,1321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Signature Burger — Layered Perfection</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
 
+    :root {
+      --page-bg: #000000;
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.62);
+      --line: rgba(255, 255, 255, 0.10);
+      --blue: #0a84ff;
+      --topbar-h: 48px;
+    }
+
+    body {
+      background: var(--page-bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      background: var(--page-bg);
+      transition: opacity 0.45s ease, visibility 0.45s ease;
+    }
+
+    #loader.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loader-inner {
+      width: min(320px, 72vw);
+      text-align: center;
+    }
+
+    .loader-title {
+      margin: 0 0 14px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .loader-track {
+      height: 2px;
+      border-radius: 999px;
+      background: var(--line);
+      overflow: hidden;
+    }
+
+    .loader-bar {
+      width: 100%;
+      height: 100%;
+      background: var(--text);
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.18s linear;
+    }
+
+    .loader-percent {
+      margin: 10px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .loader-error {
+      display: none;
+      margin: 12px 0 0;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #ff9f0a;
+    }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      height: var(--topbar-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 max(20px, env(safe-area-inset-left)) 0 max(20px, env(safe-area-inset-right));
+      border-bottom: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.45);
+      background: color-mix(in srgb, var(--page-bg) 72%, transparent);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+      font-size: 12px;
+    }
+
+    .brand,
+    .nav a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .brand {
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .nav a {
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+
+    .nav a:hover {
+      color: var(--text);
+    }
+
+    #stage {
+      position: relative;
+      height: 100vh;
+      height: 100svh;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    #frameCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      -webkit-mask-image: radial-gradient(ellipse 86% 78% at 50% 50%, #000 52%, transparent 100%);
+      mask-image: radial-gradient(ellipse 86% 78% at 50% 50%, #000 52%, transparent 100%);
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
+    }
+
+    .copy {
+      position: absolute;
+      inset: var(--topbar-h) 0 0 0;
+      pointer-events: none;
+    }
+
+    .copy-item {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      will-change: opacity;
+    }
+
+    .copy-item .inner {
+      width: min(880px, calc(100% - 48px));
+      text-align: center;
+      transform: translate3d(0, 18px, 0);
+      will-change: transform;
+    }
+
+    .copy-item h2 {
+      margin: 0;
+      font-size: clamp(34px, 7vw, 76px);
+      line-height: 1.03;
+      font-weight: 600;
+      letter-spacing: -0.035em;
+      text-wrap: balance;
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .copy-item p {
+      margin: 14px 0 0;
+      font-size: clamp(15px, 2.2vw, 24px);
+      line-height: 1.35;
+      color: var(--muted);
+      letter-spacing: -0.012em;
+      text-wrap: balance;
+      text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    .scroll-hint {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: calc(28px + env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: -0.01em;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+    }
+
+    .scroll-hint svg {
+      animation: hintBob 1.8s ease-in-out infinite;
+    }
+
+    @keyframes hintBob {
+      0%, 100% { transform: translateY(0); opacity: 0.75; }
+      50% { transform: translateY(5px); opacity: 1; }
+    }
+
+    .final {
+      min-height: 100vh;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 120px 24px 88px;
+    }
+
+    .final-inner {
+      max-width: 900px;
+    }
+
+    .final h1 {
+      margin: 0;
+      font-size: clamp(42px, 8vw, 88px);
+      line-height: 1.02;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+    }
+
+    .slogan {
+      margin: 16px 0 0;
+      font-size: clamp(18px, 2.8vw, 28px);
+      line-height: 1.3;
+      color: var(--muted);
+      letter-spacing: -0.02em;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 28px;
+      padding: 12px 22px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--blue);
+      color: #ffffff;
+      font: inherit;
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .button:hover {
+      background: #0071e3;
+      transform: translateY(-1px);
+    }
+
+    .button:focus-visible,
+    .nav a:focus-visible,
+    .brand:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 4px;
+      border-radius: 6px;
+    }
+
+    .specs {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 80px 24px 120px;
+      border-top: 1px solid var(--line);
+    }
+
+    .specs h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.08;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+    }
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 28px;
+      margin-top: 34px;
+    }
+
+    .spec h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.012em;
+    }
+
+    .spec p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.45;
+      letter-spacing: -0.01em;
+    }
+
+    body.reduced #stage {
+      position: relative;
+      height: auto;
+      min-height: auto;
+      padding-top: var(--topbar-h);
+      overflow: visible;
+    }
+
+    body.reduced #frameCanvas {
+      position: relative;
+      width: 100%;
+      height: 70svh;
+      min-height: 420px;
+      -webkit-mask-image: radial-gradient(ellipse 92% 86% at 50% 50%, #000 62%, transparent 100%);
+      mask-image: radial-gradient(ellipse 92% 86% at 50% 50%, #000 62%, transparent 100%);
+    }
+
+    body.reduced .copy {
+      position: static;
+      display: flex;
+      flex-direction: column;
+      gap: 56px;
+      padding: 72px 24px 24px;
+    }
+
+    body.reduced .copy-item {
+      position: static;
+      opacity: 1 !important;
+    }
+
+    body.reduced .copy-item .inner {
+      transform: none !important;
+    }
+
+    body.reduced .scroll-hint {
+      display: none;
+    }
+
+    body.reduced .final {
+      min-height: auto;
+      padding-top: 72px;
+    }
+
+    @media (max-width: 700px) {
+      .nav { gap: 14px; }
+      .copy-item h2 { font-size: clamp(32px, 10vw, 54px); }
+      .copy-item p { font-size: clamp(15px, 4.4vw, 20px); }
+      #frameCanvas {
+        -webkit-mask-image: radial-gradient(ellipse 96% 88% at 50% 50%, #000 58%, transparent 100%);
+        mask-image: radial-gradient(ellipse 96% 88% at 50% 50%, #000 58%, transparent 100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="loader" role="status" aria-live="polite">
+    <div class="loader-inner">
+      <p class="loader-title">Loading experience</p>
+      <div class="loader-track">
+        <div class="loader-bar" id="loaderBar"></div>
+      </div>
+      <p class="loader-percent" id="loaderPercent">0%</p>
+      <p class="loader-error" id="loaderError"></p>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="#top">Signature Burger</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#overview">Overview</a>
+      <a href="#specs">Specs</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section id="stage" aria-label="Burger disassembly scroll animation">
+      <canvas id="frameCanvas" aria-hidden="true"></canvas>
+
+      <div class="copy" id="copy">
+        <article class="copy-item" data-start="0.03" data-end="0.18">
+          <div class="inner">
+            <h2>One perfect bite.</h2>
+            <p>A premium stack, assembled with precision.</p>
+          </div>
+        </article>
+
+        <article class="copy-item" data-start="0.20" data-end="0.38">
+          <div class="inner">
+            <h2>Layers in motion.</h2>
+            <p>Scroll to separate every component.</p>
+          </div>
+        </article>
+
+        <article class="copy-item" data-start="0.40" data-end="0.58">
+          <div class="inner">
+            <h2>Freshness, isolated.</h2>
+            <p>Crisp lettuce. Ripe tomato. Melted cheese.</p>
+          </div>
+        </article>
+
+        <article class="copy-item" data-start="0.60" data-end="0.78">
+          <div class="inner">
+            <h2>The patty at the core.</h2>
+            <p>Juicy, grilled, and perfectly centered.</p>
+          </div>
+        </article>
+
+        <article class="copy-item" data-start="0.80" data-end="0.97">
+          <div class="inner">
+            <h2>Nothing hidden.</h2>
+            <p>Every ingredient visible. Every detail intentional.</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="scroll-hint" id="scrollHint">
+        <span>Scroll down</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M8 2v10m0 0l4-4m-4 4L4 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </section>
+
+    <section id="overview" class="final">
+      <div class="final-inner">
+        <h1>Signature Burger</h1>
+        <p class="slogan">Every layer, engineered.</p>
+        <button class="button" type="button">Order Now</button>
+      </div>
+    </section>
+
+    <section id="specs" class="specs">
+      <h2>Specifications</h2>
+      <div class="specs-grid">
+        <div class="spec">
+          <h3>Layers</h3>
+          <p>Top sesame bun, lettuce, tomato, melted cheese, beef patty, onion and pickles, bottom bun.</p>
+        </div>
+        <div class="spec">
+          <h3>Assembly</h3>
+          <p>Precision-stacked for balanced bite distribution and clean horizontal separation.</p>
+        </div>
+        <div class="spec">
+          <h3>Presentation</h3>
+          <p>Dark studio background, Retina-ready canvas sequence, 16:9 scroll-driven product animation.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    (() => {
+      'use strict';
+
+      const CONFIG = {
+        mode: 'zip',
+        zipUrl: 'assets/burger-frames.zip',
+        framesPath: 'frames/',
+        prefix: 'frame_',
+        digits: 3,
+        ext: 'jpg',
+        startFrame: 0,
+        totalFrames: 0,
+        pxPerFrame: 14,
+        autoDetect: true,
+        candidates: {
+          prefixes: ['frame_', 'frame-', 'ezgif-frame-', 'ezgif-', '', 'img_', 'image_'],
+          digits: [3, 4, 2, 0, 1, 5],
+          extensions: ['jpg', 'png', 'webp', 'jpeg'],
+          starts: [0, 1]
+        }
+      };
+
+      const dom = {
+        loader: document.getElementById('loader'),
+        loaderBar: document.getElementById('loaderBar'),
+        loaderPercent: document.getElementById('loaderPercent'),
+        loaderError: document.getElementById('loaderError'),
+        canvas: document.getElementById('frameCanvas'),
+        stage: document.getElementById('stage'),
+        scrollHint: document.getElementById('scrollHint')
+      };
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      let RESOLVED = null;
+      let images = [];
+      let currentFrame = 0;
+      let copyItems = [];
+      const objectUrls = [];
+
+      const canvas = dom.canvas;
+      const ctx = canvas ? canvas.getContext('2d', { alpha: true }) : null;
+
+      window.addEventListener('beforeunload', cleanupObjectUrls);
+
+      init().catch((error) => {
+        console.error(error);
+        showError(error && error.message ? error.message : 'Failed to load frames.');
+      });
+
+      async function init() {
+        if (!canvas || !ctx) throw new Error('Canvas is not available.');
+
+        copyItems = Array.from(document.querySelectorAll('.copy-item')).map((el) => ({
+          el,
+          inner: el.querySelector('.inner'),
+          start: parseFloat(el.dataset.start || '0'),
+          end: parseFloat(el.dataset.end || '1')
+        }));
+
+        if (CONFIG.mode === 'zip') {
+          const zipData = await loadZipFrames(setProgress, reduceMotion ? 1 : 0);
+          images = zipData.images;
+          RESOLVED = zipData.meta;
+        } else {
+          RESOLVED = await resolveFrames(reduceMotion);
+
+          if (reduceMotion) {
+            setProgress(0.15);
+            const firstImage = await loadImageWithRetry(frameUrl(0));
+            images = [firstImage];
+            setProgress(0.85);
+          } else {
+            const urls = Array.from({ length: RESOLVED.count }, (_, i) => frameUrl(i));
+            images = await preloadImages(urls, setProgress);
+          }
+        }
+
+        console.info('[scroll-frames] resolved', RESOLVED);
+
+        if (!images.length) throw new Error('No frames loaded.');
+
+        applyBackground(sampleBackground(images));
+        bindResize();
+        resize();
+
+        if (reduceMotion) {
+          draw(0);
+          revealReducedCopy();
+        } else {
+          draw(0);
+          updateCopy(0);
+          initScrollAnimation();
+        }
+
+        setProgress(1);
+        hideLoader();
+      }
+
+      async function loadZipFrames(onProgress, limit = 0) {
+        if (!window.JSZip) {
+          throw new Error('JSZip is not loaded.');
+        }
+
+        onProgress(0.02);
+
+        const zipBlob = await fetchBlobWithProgress(CONFIG.zipUrl, (p) => {
+          onProgress(0.02 + p * 0.35);
+        });
+
+        const zip = await JSZip.loadAsync(zipBlob);
+        onProgress(0.4);
+
+        const entries = Object.values(zip.files).filter(isImageEntry);
+        if (!entries.length) throw new Error('ZIP archive does not contain image frames.');
+
+        let selected = selectBestSequence(entries);
+        if (limit > 0) selected = selected.slice(0, limit);
+
+        const meta = {
+          source: 'zip',
+          url: CONFIG.zipUrl,
+          count: selected.length,
+          names: selected.map((entry) => basename(entry.name))
+        };
+
+        const loadedImages = [];
+
+        for (let i = 0; i < selected.length; i += 1) {
+          const entry = selected[i];
+          const frameBlob = await entry.async('blob');
+          const url = URL.createObjectURL(frameBlob);
+          objectUrls.push(url);
+
+          const img = await loadImageWithRetry(url);
+          loadedImages.push(img);
+
+          onProgress(0.4 + ((i + 1) / selected.length) * 0.6);
+        }
+
+        return { images: loadedImages, meta };
+      }
+
+      function isImageEntry(entry) {
+        if (!entry || entry.dir) return false;
+
+        const name = entry.name || '';
+
+        if (/(^|\/)(__MACOSX|\.DS_Store|Thumbs\.db)/i.test(name)) {
+          return false;
+        }
+
+        return /\.(png|jpe?g|webp)$/i.test(name);
+      }
+
+      function selectBestSequence(entries) {
+        const groups = groupByExtension(entries);
+        let best = [];
+
+        for (const group of groups.values()) {
+          const refined = refineSequence(group);
+          if (refined.length > best.length) best = refined;
+        }
+
+        if (!best.length) best = refineSequence(entries);
+
+        return best;
+      }
+
+      function groupByExtension(entries) {
+        const groups = new Map();
+
+        for (const entry of entries) {
+          const match = entry.name.match(/\.([a-z0-9]+)$/i);
+          const ext = match ? match[1].toLowerCase() : 'unknown';
+
+          if (!groups.has(ext)) groups.set(ext, []);
+          groups.get(ext).push(entry);
+        }
+
+        return groups;
+      }
+
+      function refineSequence(entries) {
+        const byNumber = new Map();
+
+        for (const entry of entries) {
+          const num = getSequenceNumber(entry.name);
+          if (!byNumber.has(num)) byNumber.set(num, entry);
+        }
+
+        const numbers = Array.from(byNumber.keys()).sort((a, b) => a - b);
+
+        if (numbers.length <= 2) {
+          return entries.slice().sort(compareFrameEntries);
+        }
+
+        let bestStart = 0;
+        let bestLength = 1;
+        let currentStart = 0;
+        let currentLength = 1;
+
+        for (let i = 1; i < numbers.length; i += 1) {
+          if (numbers[i] === numbers[i - 1] + 1) {
+            currentLength += 1;
+          } else {
+            if (currentLength > bestLength) {
+              bestLength = currentLength;
+              bestStart = currentStart;
+            }
+
+            currentStart = i;
+            currentLength = 1;
+          }
+        }
+
+        if (currentLength > bestLength) {
+          bestLength = currentLength;
+          bestStart = currentStart;
+        }
+
+        if (bestLength >= 2 && bestLength < numbers.length) {
+          const result = [];
+
+          for (let i = bestStart; i < bestStart + bestLength; i += 1) {
+            result.push(byNumber.get(numbers[i]));
+          }
+
+          return result;
+        }
+
+        return entries.slice().sort(compareFrameEntries);
+      }
+
+      function compareFrameEntries(a, b) {
+        const diff = getSequenceNumber(a.name) - getSequenceNumber(b.name);
+        if (diff !== 0) return diff;
+
+        return basename(a.name).localeCompare(basename(b.name), undefined, {
+          numeric: true,
+          sensitivity: 'base'
+        });
+      }
+
+      function getSequenceNumber(path) {
+        const name = basename(path || '');
+        const matches = name.match(/\d+/g);
+
+        if (!matches || !matches.length) return 0;
+
+        let candidate = matches[0];
+
+        for (const match of matches) {
+          if (match.length >= candidate.length) candidate = match;
+        }
+
+        const parsed = Number(candidate);
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      function basename(path) {
+        return String(path || '').split('/').pop();
+      }
+
+      async function fetchBlobWithProgress(url, onProgress) {
+        const response = await fetch(url, { cache: 'no-store' });
+
+        if (!response.ok) {
+          throw new Error('Cannot download ZIP: HTTP ' + response.status);
+        }
+
+        const totalHeader = response.headers.get('Content-Length');
+        const total = totalHeader ? Number(totalHeader) : 0;
+
+        if (!response.body || !Number.isFinite(total) || total <= 0) {
+          onProgress(1);
+          return response.blob();
+        }
+
+        const reader = response.body.getReader();
+        const chunks = [];
+        let received = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          chunks.push(value);
+          received += value.length;
+          onProgress(Math.min(1, received / total));
+        }
+
+        return new Blob(chunks);
+      }
+
+      function cleanupObjectUrls() {
+        while (objectUrls.length) {
+          const url = objectUrls.pop();
+          try {
+            URL.revokeObjectURL(url);
+          } catch (_) {}
+        }
+      }
+
+      async function resolveFrames(quick = false) {
+        if (!CONFIG.autoDetect || CONFIG.totalFrames > 0) {
+          return {
+            path: CONFIG.framesPath,
+            prefix: CONFIG.prefix,
+            digits: CONFIG.digits,
+            ext: CONFIG.ext,
+            start: CONFIG.startFrame,
+            count: CONFIG.totalFrames > 0 ? CONFIG.totalFrames : 1
+          };
+        }
+
+        const manifest = await tryManifest();
+        if (manifest) return manifest;
+
+        if (quick) return await detectQuick();
+        return await detectByProbing();
+      }
+
+      async function tryManifest() {
+        try {
+          const response = await fetch(joinPath(CONFIG.framesPath, 'manifest.json'), { cache: 'no-store' });
+          if (!response.ok) return null;
+
+          const data = await response.json();
+          if (!data || typeof data.count !== 'number' || data.count < 1) return null;
+
+          return {
+            path: data.path || CONFIG.framesPath,
+            prefix: data.prefix != null ? data.prefix : CONFIG.prefix,
+            digits: data.digits != null ? data.digits : CONFIG.digits,
+            ext: data.ext || CONFIG.ext,
+            start: data.start != null ? data.start : 0,
+            count: data.count
+          };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      async function detectQuick() {
+        const candidates = buildCandidates();
+        let fallback = null;
+
+        for (const candidate of candidates) {
+          const firstUrl = makeUrl(candidate.start, candidate);
+          if (!(await imageExists(firstUrl))) continue;
+
+          const secondUrl = makeUrl(candidate.start + 1, candidate);
+          if (await imageExists(secondUrl)) {
+            return { ...candidate, path: CONFIG.framesPath, count: 1 };
+          }
+
+          if (!fallback) {
+            fallback = { ...candidate, path: CONFIG.framesPath, count: 1 };
+          }
+        }
+
+        if (fallback) return fallback;
+
+        throw new Error(
+          'Could not detect frame files in "' + CONFIG.framesPath + '". ' +
+          'Set CONFIG.prefix, CONFIG.digits, CONFIG.ext, CONFIG.startFrame and CONFIG.totalFrames manually.'
+        );
+      }
+
+      async function detectByProbing() {
+        const candidates = buildCandidates();
+        let singleton = null;
+
+        for (const candidate of candidates) {
+          const firstUrl = makeUrl(candidate.start, candidate);
+          if (!(await imageExists(firstUrl))) continue;
+
+          const secondUrl = makeUrl(candidate.start + 1, candidate);
+          if (await imageExists(secondUrl)) {
+            const count = await detectCount(candidate);
+            if (count > 1) {
+              return { ...candidate, path: CONFIG.framesPath, count };
+            }
+          } else if (!singleton) {
+            singleton = { ...candidate, path: CONFIG.framesPath, count: 1 };
+          }
+        }
+
+        if (singleton) return singleton;
+
+        throw new Error(
+          'Could not detect frame files in "' + CONFIG.framesPath + '". ' +
+          'Set CONFIG.prefix, CONFIG.digits, CONFIG.ext, CONFIG.startFrame and CONFIG.totalFrames manually.'
+        );
+      }
+
+      async function detectCount(candidate) {
+        const maxFrames = 5000;
+        let lastGood = candidate.start;
+        let test = candidate.start + 1;
+
+        while (test - candidate.start <= maxFrames) {
+          if (!(await imageExists(makeUrl(test, candidate)))) break;
+
+          lastGood = test;
+          test = candidate.start + (test - candidate.start) * 2;
+        }
+
+        let lo = lastGood;
+        let hi = test;
+
+        if (hi - candidate.start > maxFrames + 1) {
+          hi = candidate.start + maxFrames + 1;
+        }
+
+        while (lo + 1 < hi) {
+          const mid = Math.floor((lo + hi) / 2);
+
+          if (await imageExists(makeUrl(mid, candidate))) {
+            lo = mid;
+          } else {
+            hi = mid;
+          }
+        }
+
+        return lo - candidate.start + 1;
+      }
+
+      function buildCandidates() {
+        const base = CONFIG.candidates;
+
+        const prefixes = unique([CONFIG.prefix, ...base.prefixes]);
+        const digits = unique([CONFIG.digits, ...base.digits]);
+        const extensions = unique([CONFIG.ext, ...base.extensions]);
+        const starts = unique([CONFIG.startFrame, ...base.starts]);
+
+        const list = [];
+        const seen = new Set();
+
+        for (const start of starts) {
+          for (const prefix of prefixes) {
+            for (const digitCount of digits) {
+              for (const ext of extensions) {
+                const key = `${start}|${prefix}|${digitCount}|${ext}`;
+                if (seen.has(key)) continue;
+
+                seen.add(key);
+                list.push({ start, prefix, digits: digitCount, ext });
+              }
+            }
+          }
+        }
+
+        return list;
+      }
+
+      function unique(values) {
+        const seen = new Set();
+
+        return values.filter((value) => {
+          if (seen.has(value)) return false;
+          seen.add(value);
+          return true;
+        });
+      }
+
+      function frameUrl(index) {
+        return makeUrl(RESOLVED.start + index, RESOLVED);
+      }
+
+      function makeUrl(number, source) {
+        const path = source.path || CONFIG.framesPath;
+        const prefix = source.prefix || '';
+        const digits = Number(source.digits || 0);
+        const ext = source.ext || 'jpg';
+
+        return `${path}${prefix}${pad(number, digits)}.${ext}`;
+      }
+
+      function pad(number, digits) {
+        const value = String(number);
+        return digits > 0 ? value.padStart(digits, '0') : value;
+      }
+
+      function joinPath(base, file) {
+        return base.endsWith('/') ? base + file : base + '/' + file;
+      }
+
+      function imageExists(url, timeout = 2200) {
+        return new Promise((resolve) => {
+          let settled = false;
+          const img = new Image();
+
+          const finish = (value) => {
+            if (settled) return;
+            settled = true;
+
+            img.onload = null;
+            img.onerror = null;
+
+            resolve(value);
+          };
+
+          img.onload = () => finish(true);
+          img.onerror = () => finish(false);
+
+          setTimeout(() => finish(false), timeout);
+
+          img.src = url;
+        });
+      }
+
+      function loadImage(url) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.decoding = 'async';
+
+          img.onload = async () => {
+            try {
+              await img.decode();
+            } catch (_) {}
+
+            resolve(img);
+          };
+
+          img.onerror = () => reject(new Error('Image failed to load: ' + url));
+          img.src = url;
+        });
+      }
+
+      async function loadImageWithRetry(url, retries = 2) {
+        let lastError = null;
+
+        for (let attempt = 0; attempt <= retries; attempt += 1) {
+          try {
+            return await loadImage(url);
+          } catch (error) {
+            lastError = error;
+
+            if (attempt < retries) {
+              await delay(120 * (attempt + 1));
+            }
+          }
+        }
+
+        throw lastError || new Error('Image failed to load: ' + url);
+      }
+
+      async function preloadImages(urls, onProgress) {
+        const result = new Array(urls.length);
+        const queue = urls.map((_, index) => index);
+        let loaded = 0;
+
+        const workerCount = Math.min(12, urls.length);
+
+        const workers = Array.from({ length: workerCount }, async () => {
+          while (queue.length) {
+            const index = queue.shift();
+
+            result[index] = await loadImageWithRetry(urls[index]);
+            loaded += 1;
+
+            onProgress(loaded / urls.length);
+          }
+        });
+
+        await Promise.all(workers);
+
+        if (result.some((image) => !image)) {
+          throw new Error('Some frames failed to load.');
+        }
+
+        return result;
+      }
+
+      function sampleBackground(sourceImages) {
+        if (!sourceImages.length) return '#000000';
+
+        const indices = Array.from(new Set([
+          0,
+          Math.floor((sourceImages.length - 1) / 2),
+          sourceImages.length - 1
+        ]));
+
+        let r = 0;
+        let g = 0;
+        let b = 0;
+        let n = 0;
+
+        const sampleCanvas = document.createElement('canvas');
+        const sampleCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
+
+        for (const index of indices) {
+          const img = sourceImages[index];
+          if (!img || !img.naturalWidth || !img.naturalHeight) continue;
+
+          const iw = img.naturalWidth;
+          const ih = img.naturalHeight;
+          const size = Math.max(8, Math.min(80, Math.floor(Math.min(iw, ih) * 0.06)));
+
+          const regions = [
+            [0, 0],
+            [iw - size, 0],
+            [0, ih - size],
+            [iw - size, ih - size]
+          ];
+
+          for (const [x, y] of regions) {
+            try {
+              sampleCanvas.width = size;
+              sampleCanvas.height = size;
+
+              sampleCtx.clearRect(0, 0, size, size);
+              sampleCtx.drawImage(img, x, y, size, size, 0, 0, size, size);
+
+              const data = sampleCtx.getImageData(0, 0, size, size).data;
+
+              for (let i = 0; i < data.length; i += 4) {
+                r += data[i];
+                g += data[i + 1];
+                b += data[i + 2];
+                n += 1;
+              }
+            } catch (_) {}
+          }
+        }
+
+        if (!n) return '#000000';
+
+        const clamp = (value) => Math.max(0, Math.min(255, Math.round(value)));
+
+        return `rgb(${clamp(r / n)}, ${clamp(g / n)}, ${clamp(b / n)})`;
+      }
+
+      function applyBackground(color) {
+        document.documentElement.style.setProperty('--page-bg', color);
+      }
+
+      function bindResize() {
+        window.addEventListener('resize', resize);
+
+        if (window.ResizeObserver) {
+          const observer = new ResizeObserver(() => resize());
+          observer.observe(dom.stage);
+          observer.observe(canvas);
+        }
+      }
+
+      function resize() {
+        if (!canvas || !ctx) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        const width = Math.max(1, Math.round(rect.width * dpr));
+        const height = Math.max(1, Math.round(rect.height * dpr));
+
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+        }
+
+        draw(currentFrame);
+      }
+
+      function draw(index) {
+        if (!ctx || !images.length) return;
+
+        const clamped = Math.max(0, Math.min(images.length - 1, Math.round(index)));
+        const img = images[clamped];
+
+        if (!img) return;
+
+        currentFrame = clamped;
+
+        const cw = canvas.width;
+        const ch = canvas.height;
+
+        ctx.clearRect(0, 0, cw, ch);
+
+        const iw = img.naturalWidth || img.width;
+        const ih = img.naturalHeight || img.height;
+
+        if (!iw || !ih) return;
+
+        const isMobile = window.innerWidth < 768;
+        const fit = Math.min(cw / iw, ch / ih);
+        const scale = fit * (isMobile ? 0.96 : 0.82);
+
+        const w = iw * scale;
+        const h = ih * scale;
+        const x = (cw - w) / 2;
+        const y = (ch - h) / 2;
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        ctx.drawImage(img, x, y, w, h);
+      }
+
+      function updateCopy(progress) {
+        for (const item of copyItems) {
+          let opacity = 0;
+          let y = 18;
+
+          if (progress >= item.start && progress <= item.end) {
+            const span = Math.max(0.0001, item.end - item.start);
+            const t = (progress - item.start) / span;
+
+            opacity = Math.sin(Math.PI * t);
+            opacity = Math.pow(Math.max(0, opacity), 0.72);
+
+            y = (1 - opacity) * 18;
+          }
+
+          item.el.style.opacity = opacity.toFixed(3);
+
+          if (item.inner) {
+            item.inner.style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`;
+          }
+        }
+
+        if (dom.scrollHint) {
+          dom.scrollHint.style.opacity = progress < 0.015 ? '1' : '0';
+        }
+      }
+
+      function revealReducedCopy() {
+        for (const item of copyItems) {
+          item.el.style.opacity = '1';
+
+          if (item.inner) {
+            item.inner.style.transform = 'none';
+          }
+        }
+
+        if (dom.scrollHint) {
+          dom.scrollHint.style.display = 'none';
+        }
+      }
+
+      function initScrollAnimation() {
+        if (!window.gsap || !window.ScrollTrigger) {
+          initFallbackScroll();
+          return;
+        }
+
+        gsap.registerPlugin(ScrollTrigger);
+
+        const scrollLength = Math.max(300, images.length * CONFIG.pxPerFrame);
+        const state = { progress: 0 };
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: dom.stage,
+            start: 'top top',
+            end: () => '+=' + scrollLength,
+            pin: true,
+            scrub: 1,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            pinSpacing: true
+          }
+        });
+
+        tl.to(state, {
+          progress: 1,
+          ease: 'none',
+          duration: 1,
+          onUpdate: () => {
+            const progress = state.progress;
+            const frame = progress * (images.length - 1);
+
+            draw(frame);
+            updateCopy(progress);
+          }
+        }, 0);
+
+        ScrollTrigger.refresh();
+      }
+
+      function initFallbackScroll() {
+        const scrollLength = Math.max(300, images.length * CONFIG.pxPerFrame);
+
+        dom.stage.style.position = 'sticky';
+        dom.stage.style.top = '0';
+
+        const spacer = document.createElement('div');
+        spacer.style.height = scrollLength + 'px';
+
+        dom.stage.insertAdjacentElement('afterend', spacer);
+
+        const onScroll = () => {
+          const rect = dom.stage.getBoundingClientRect();
+          const progress = Math.max(0, Math.min(1, -rect.top / scrollLength));
+
+          draw(progress * (images.length - 1));
+          updateCopy(progress);
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll);
+
+        onScroll();
+      }
+
+      function setProgress(progress) {
+        const value = Math.max(0, Math.min(1, progress));
+
+        if (dom.loaderBar) {
+          dom.loaderBar.style.transform = `scaleX(${value})`;
+        }
+
+        if (dom.loaderPercent) {
+          dom.loaderPercent.textContent = `${Math.round(value * 100)}%`;
+        }
+      }
+
+      function hideLoader() {
+        if (dom.loader) {
+          dom.loader.classList.add('hidden');
+        }
+      }
+
+      function showError(message) {
+        if (dom.loaderError) {
+          dom.loaderError.textContent = message;
+          dom.loaderError.style.display = 'block';
+        }
+
+        if (dom.loaderPercent) {
+          dom.loaderPercent.textContent = '—';
+        }
+
+        if (dom.loaderBar) {
+          dom.loaderBar.style.transform = 'scaleX(0)';
+        }
+      }
+
+      function delay(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+    })();
+  </script>
+</body>
+</html>
