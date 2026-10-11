@@ -30,7 +30,7 @@ section[id]{scroll-margin-top:var(--nav)}
 .links{display:flex;gap:18px;align-items:center}
 .links a{color:var(--grey);transition:color .2s}
 .links a:hover{color:var(--ink)}
-.links .cta{color:var(--ink);background:var(--blue);padding:.45rem 1rem;border-radius:99px;font-weight:500}
+.links .cta{color:#fff;background:var(--blue);padding:.45rem 1rem;border-radius:99px;font-weight:500}
 @media(max-width:640px){.links .m{display:none}}
 /* stage */
 .stage{position:relative;height:100vh;height:100svh;overflow:hidden;background:var(--bg)}
@@ -43,16 +43,16 @@ mask-composite:intersect}
 .fx{position:absolute;inset:0;pointer-events:none}
 .fx-glow{z-index:0;background:radial-gradient(ellipse 34% 44% at 50% 54%,rgba(255,150,60,.2),transparent 72%),radial-gradient(ellipse 70% 40% at 50% 100%,rgba(70,110,170,.14),transparent 70%);animation:breathe 7s ease-in-out infinite}
 @keyframes breathe{0%,100%{opacity:.75}50%{opacity:1}}
-#dust{z-index:2;width:100%;height:100%}
+#dust{position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none}
 .fx-edgeblur{z-index:2;backdrop-filter:blur(9px) brightness(.95);-webkit-backdrop-filter:blur(9px) brightness(.95);
--webkit-mask-image:radial-gradient(ellipse 64% 56% at 50% 50%,transparent 44%,#000 84%);
-mask-image:radial-gradient(ellipse 64% 56% at 50% 50%,transparent 44%,#000 84%)}
+-webkit-mask-image:radial-gradient(ellipse 62% 54% at 50% 50%,transparent 42%,#000 82%);
+mask-image:radial-gradient(ellipse 62% 54% at 50% 50%,transparent 42%,#000 82%)}
 .fx-grade{z-index:3;mix-blend-mode:soft-light;opacity:.55;background:radial-gradient(ellipse 60% 50% at 50% 42%,rgba(255,150,70,.35),transparent 70%),radial-gradient(ellipse 90% 80% at 50% 110%,rgba(40,60,120,.25),transparent 70%)}
-/* vignette: sides + top/bottom + corners, deep */
+/* vignette: max strength, all sides */
 .fx-vig{z-index:3;background:
-linear-gradient(to right,rgba(0,0,0,.85),rgba(0,0,0,.45) 14%,transparent 32%,transparent 68%,rgba(0,0,0,.45) 86%,rgba(0,0,0,.85)),
-linear-gradient(to bottom,rgba(0,0,0,.8),rgba(0,0,0,.42) 12%,transparent 26%,transparent 74%,rgba(0,0,0,.42) 88%,rgba(0,0,0,.8)),
-radial-gradient(ellipse 78% 70% at 50% 50%,transparent 36%,rgba(0,0,0,.5) 68%,rgba(0,0,0,.88) 100%)}
+linear-gradient(to right,rgba(0,0,0,.9),rgba(0,0,0,.55) 14%,rgba(0,0,0,.2) 28%,transparent 38%,transparent 62%,rgba(0,0,0,.2) 72%,rgba(0,0,0,.55) 86%,rgba(0,0,0,.9)),
+linear-gradient(to bottom,rgba(0,0,0,.85),rgba(0,0,0,.5) 12%,rgba(0,0,0,.18) 24%,transparent 34%,transparent 66%,rgba(0,0,0,.18) 76%,rgba(0,0,0,.5) 88%,rgba(0,0,0,.85)),
+radial-gradient(ellipse 72% 64% at 50% 50%,transparent 26%,rgba(0,0,0,.55) 60%,rgba(0,0,0,.95) 100%)}
 .fx-sheen{z-index:4;opacity:.9;background:linear-gradient(112deg,transparent 42%,rgba(255,255,255,.075) 50%,transparent 58%);background-size:280% 100%;background-position:130% 0;animation:sheen 10s ease-in-out infinite}
 @keyframes sheen{0%,50%{background-position:130% 0}85%,100%{background-position:-40% 0}}
 /* copy steps */
@@ -155,7 +155,7 @@ footer b{color:var(--ink);display:block;margin-bottom:.5rem}
 <section class="stage" id="stage" aria-label="The burger taken apart as you scroll">
   <div class="fx fx-glow" aria-hidden="true"></div>
   <div class="frame" id="frame"><canvas id="c" role="img" aria-label="A cheeseburger separating into its layers as you scroll"></canvas></div>
-  <canvas class="fx" id="dust" aria-hidden="true"></canvas>
+  <canvas id="dust" aria-hidden="true"></canvas>
   <div class="fx fx-edgeblur" aria-hidden="true"></div>
   <div class="fx fx-grade" aria-hidden="true"></div>
   <div class="fx fx-vig" aria-hidden="true"></div>
@@ -251,48 +251,54 @@ footer b{color:var(--ink);display:block;margin-bottom:.5rem}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
-(()=>{ 'use strict';
+(()=>{'use strict';
 /* ---------- settings ---------- */
 const CONFIG={
-  zipUrls:[ // tried in order; page lives in /BurgerMenu/index.html/ so ".." = repo root
+  /* ZIP with frames lives in the repo root; page lives in /BurgerMenu/index.html/ so ".." = repo root */
+  zipUrls:[
     '../ezgif-7108051e0c153ae9-jpg.zip',
     'ezgif-7108051e0c153ae9-jpg.zip',
     '../assets/ezgif-7108051e0c153ae9-jpg.zip',
-    'assets/ezgif-7108051e0c153ae9-jpg.zip'
+    'assets/ezgif-7108051e0c153ae9-jpg.zip',
+    '../assets/burger-frames.zip',
+    'assets/burger-frames.zip'
   ],
-  pxPerFrame:14,          // scroll pixels per frame
-  scrub:1,                // smoothing seconds
-  frameScale:{landscape:.72,portrait:1.5}, // smaller frame = soft pixels less visible
+  pxPerFrame:14,           /* scroll pixels per frame */
+  scrub:1,                 /* smoothing seconds */
+  frameScale:{landscape:.7,portrait:.8},  /* smaller frame = soft pixels less visible */
   fx:{glow:true,dust:true,push:true}
 };
 const COPY=[[.03,.19],[.21,.38],[.40,.58],[.60,.78],[.80,.96]];
 const FORM={to:'hello@signatureburger.example'};
-const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const rmQ=matchMedia('(prefers-reduced-motion: reduce)');
-const still=rmQ.matches||!window.gsap||!window.ScrollTrigger||!window.JSZip;
-const canvas=$('#c'), ctx=canvas.getContext('2d'), frameBox=$('#frame');
-let frames=[], current=0, progressMax=0;
+const still=rmQ.matches||!window.gsap||!window.ScrollTrigger;
+const canvas=$('#c'),ctx=canvas.getContext('2d'),frameBox=$('#frame');
+let frames=[],current=0,pMax=0;
 
-function setProgress(p){ progressMax=Math.max(progressMax,Math.min(1,p));
-  $('#lbar').style.transform='scaleX('+progressMax+')';
-  $('#lpct').textContent=Math.round(progressMax*100)+'%'; }
-function showError(msg){ const w=$('#lwarn'); if(w){w.textContent=msg;w.style.display='block'} $('#lpct').textContent='—'; }
+function setProgress(p){pMax=Math.max(pMax,Math.min(1,p));$('#lbar').style.transform='scaleX('+pMax+')';$('#lpct').textContent=Math.round(pMax*100)+'%';}
+function showError(m){const w=$('#lwarn');if(w){w.textContent=m;w.style.display='block';}$('#lpct').textContent='—';}
 
-const num=name=>{ const m=name.match(/(\d+)(?=\.[a-z0-9]+$/i)||name.match(/(\d+)(?![\d])*$/g);
-  if(m&&m[0]) return parseInt(m[0],10);
-  const all=name.match(/\d+/g); return all?parseInt(all[all.length-1],10):0; };
+/* FIXED regex: lookahead group is properly closed */
+function num(name){
+  const base=String(name).split('/').pop();
+  const m=base.match(/(\d+)(?=\.[a-z0-9]+$)/i);
+  if(m)return parseInt(m[1],10);
+  const all=base.match(/\d+/g);
+  return all?parseInt(all[all.length-1],10):0;
+}
 
 async function fetchBlob(u){
   const r=await fetch(u,{cache:'no-store'});
-  if(!r.ok) throw new Error(u+' -> HTTP '+r.status);
+  if(!r.ok)throw new Error(u+' -> HTTP '+r.status);
   const total=+(r.headers.get('Content-Length')||0);
-  if(!r.body||!total){ setProgress(.4); return r.blob(); }
-  const rd=r.body.getReader(), ch=[]; let rec=0;
-  for(;;){ const{done,value}=await rd.read(); if(done)break; ch.push(value); rec+=value.length; setProgress(.4*Math.min(1,rec/total)); }
+  if(!r.body||!total){setProgress(.35);return r.blob();}
+  const rd=r.body.getReader(),ch=[];let rec=0;
+  for(;;){const{done,value}=await rd.read();if(done)break;ch.push(value);rec+=value.length;setProgress(.35*Math.min(1,rec/total));}
   return new Blob(ch);
 }
-const loadImg=url=>new Promise((res,rej)=>{ const im=new Image(); im.decoding='async';
-  im.onload=()=>res(im); im.onerror=()=>rej(new Error('bad frame '+url)); im.src=url; });
+const loadImg=url=>new Promise((res,rej)=>{const im=new Image();im.decoding='async';im.onload=()=>res(im);im.onerror=()=>rej(new Error('bad frame'));im.src=url;});
 
 async function loadZip(){
   let lastErr=null;
@@ -301,98 +307,123 @@ async function loadZip(){
       const blob=await fetchBlob(u);
       const zip=await JSZip.loadAsync(blob);
       const entries=Object.values(zip.files).filter(e=>!e.dir&&/\.(jpe?g|png|webp)$/i.test(e.name)&&!/__MACOSX|\.DS_Store|thumbs\.db/i.test(e.name));
-      if(!entries.length) throw new Error('no images in '+u);
+      if(!entries.length)throw new Error('no images in '+u);
       entries.sort((a,b)=>num(a.name)-num(b.name)||a.name.localeCompare(b.name,undefined,{numeric:true}));
+      const pick=still?[entries[Math.floor(entries.length/2)]]:entries;
       let done=0;
-      const imgs=await Promise.all(entries.map(async e=>{
-        const b=await e.async('blob'), url=URL.createObjectURL(b);
-        const im=await loadImg(url); done++; setProgress(.4+.6*done/entries.length); return im;
+      const imgs=await Promise.all(pick.map(async e=>{
+        const b=await e.async('blob');
+        const ou=URL.createObjectURL(b);
+        const im=await loadImg(ou);
+        done++;setProgress(.35+.65*done/pick.length);
+        return im;
       }));
       console.info('[frames] loaded',imgs.length,'from',u);
       return imgs;
-    }catch(err){ lastErr=err; console.warn('[zip] skip',u,err&&err.message); }
+    }catch(err){lastErr=err;console.warn('[zip] skip',u,err&&err.message);}
   }
   throw lastErr||new Error('ZIP not found');
 }
 
 function layout(){
-  const vw=innerWidth, vh=innerHeight, dpr=Math.min(devicePixelRatio||1,2);
+  const vw=innerWidth,vh=innerHeight,dpr=Math.min(devicePixelRatio||1,2);
   let H;
-  if(still){ const W=Math.min(vw,1000); H=W*9/16; frameBox.style.width=W+'px'; frameBox.style.height=H+'px'; }
+  if(still){const W=Math.min(vw,1000);H=W*9/16;frameBox.style.width=W+'px';frameBox.style.height=H+'px';}
   else{
     const portrait=vw/vh<1;
     H=portrait?Math.min(vh*.96,vw*CONFIG.frameScale.portrait*9/16):vh*CONFIG.frameScale.landscape;
-    const W=H*16/9; frameBox.style.width=W+'px'; frameBox.style.height=H+'px';
+    const W=H*16/9;frameBox.style.width=W+'px';frameBox.style.height=H+'px';
   }
-  const cw=Math.round(frameBox.clientWidth*dpr)||Math.round(H*16/9*dpr), chh=Math.round(H*dpr);
-  if(canvas.width!==cw||canvas.height!==chh){ canvas.width=cw; canvas.height=chh; }
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  const cw=Math.round(frameBox.clientWidth*dpr)||Math.round(H*16/9*dpr);
+  const chh=Math.round(H*dpr);
+  if(canvas.width!==cw||canvas.height!==chh){canvas.width=cw;canvas.height=chh;}
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
   render(current);
 }
 function render(i){
-  if(!frames.length) return;
+  if(!frames.length)return;
   current=Math.max(0,Math.min(frames.length-1,Math.round(i)));
   const im=frames[current];
-  if(im&&im.complete&&im.naturalWidth) ctx.drawImage(im,0,0,canvas.width,canvas.height);
+  if(im&&im.complete&&im.naturalWidth)ctx.drawImage(im,0,0,canvas.width,canvas.height);
 }
+
+/* drifting dust and light */
 function dust(){
-  const cv=$('#dust'), g=cv.getContext('2d'); let W,H,run=true,last=0;
+  const cv=$('#dust'),g=cv.getContext('2d');
+  let W,H,run=true,last=0;
   const n=innerWidth<700?20:44;
-  const size=()=>{ const d=Math.min(devicePixelRatio||1,2); W=cv.width=Math.round(cv.clientWidth*d); H=cv.height=Math.round(cv.clientHeight*d); };
-  size(); addEventListener('resize',size);
-  const mk=()=>({x:Math.random(),y:Math.random(),r:Math.random()*2+1,v:Math.random()*5e-5+2e-5,s:Math.random()*6.28,a:Math.random()*.35+.08});
+  const size=()=>{const d=Math.min(devicePixelRatio||1,2);W=cv.width=Math.round(cv.clientWidth*d);H=cv.height=Math.round(cv.clientHeight*d);};
+  size();addEventListener('resize',size);
+  const mk=()=>({x:Math.random(),y:Math.random(),r:.6+Math.random()*2.4,v:.00006+Math.random()*.00016,s:Math.random()*6.28,a:.12+Math.random()*.4});
   const P=Array.from({length:n},mk);
-  new IntersectionObserver(e=>{run=e[0].isIntersecting;if(run)requestAnimationFrame(tick)},{threshold:0}).observe(cv);
-  function tick(t){ if(!run)return; requestAnimationFrame(tick); if(t-last<33)return; const dt=t-last; last=t;
+  new IntersectionObserver(e=>{run=e[0].isIntersecting;if(run)requestAnimationFrame(tick);},{threshold:0}).observe(cv);
+  function tick(t=0){
+    if(!run)return;
+    requestAnimationFrame(tick);
+    if(t-last<33)return;
+    const dt=t-last;last=t;
     g.clearRect(0,0,W,H);
-    for(const p of P){ p.y-=p.v*dt; p.x+=Math.sin(t/2600+p.s)*.00012*dt; if(p.y<-.05){p.y=1.05;p.x=Math.random()}
+    for(const p of P){
+      p.y-=p.v*dt;p.x+=Math.sin(t/2600+p.s)*.00012*dt;
+      if(p.y<-.05){p.y=1.05;p.x=Math.random();}
       const x=p.x*W,y=p.y*H,r=p.r*(W/900+.7),a=p.a*(.6+.4*Math.sin(t/900+p.s));
-      const gr=g.createRadialGradient(x,y,0,x,y,r*3); gr.addColorStop(0,'rgba(255,214,160,'+a+')'); gr.addColorStop(1,'rgba(255,214,160,0)');
-      g.fillStyle=gr; g.beginPath(); g.arc(x,y,r*3,0,6.283); g.fill(); } }
+      const gr=g.createRadialGradient(x,y,0,x,y,r*3);
+      gr.addColorStop(0,'rgba(255,214,160,'+a+')');
+      gr.addColorStop(1,'rgba(255,214,160,0)');
+      g.fillStyle=gr;g.beginPath();g.arc(x,y,r*3,0,6.283);g.fill();
+    }
+  }
   requestAnimationFrame(tick);
 }
+
+/* scroll animation */
 function animate(){
-  gsap.registerPlugin(ScrollTrigger); ScrollTrigger.config({ignoreMobileResize:true});
-  const state={f:0}, len=frames.length*CONFIG.pxPerFrame;
+  gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.config({ignoreMobileResize:true});
+  const state={f:0},len=frames.length*CONFIG.pxPerFrame;
   const tl=gsap.timeline({defaults:{ease:'none'},scrollTrigger:{trigger:'#stage',start:'top top',end:()=>'+='+len,scrub:CONFIG.scrub,pin:true,anticipatePin:1,invalidateOnRefresh:true}});
-  tl.to(state,{f:frames.length-1,duration:1,snap:{f:1},onUpdate:()=>{ const i=Math.round(state.f); if(i!==current)render(i); }},0);
-  if(CONFIG.fx.push) tl.fromTo('#frame',{scale:1},{scale:1.06,duration:1},0);
-  $$('.step').forEach((el,k)=>{ const[a,b]=COPY[k]||[0,1], d=.035;
-    tl.fromTo(el,{autoAlpha:0,y:26,filter:'blur(8px)'},{autoAlpha:1,y:0,filter:'blur(0px)',duration:d,ease:'power2.out'},a)
-      .to(el,{autoAlpha:0,y:-26,filter:'blur(8px)',duration:d,ease:'power2.in'},b-d); });
+  tl.to(state,{f:frames.length-1,duration:1,snap:{f:1},onUpdate:()=>{const i=Math.round(state.f);if(i!==current)render(i);}},0);
+  if(CONFIG.fx.push)tl.fromTo('#frame',{scale:1},{scale:1.06,duration:1},0);
+  $$('.step').forEach((el,k)=>{const w=COPY[k]||[0,1],d=.035;
+    tl.fromTo(el,{autoAlpha:0,y:26,filter:'blur(8px)'},{autoAlpha:1,y:0,filter:'blur(0px)',duration:d,ease:'power2.out'},w[0])
+      .to(el,{autoAlpha:0,y:-26,filter:'blur(8px)',duration:d,ease:'power2.in'},w[1]-d);
+  });
   tl.to('#hint',{autoAlpha:0,duration:.03},.01);
 }
 function reveals(){
-  if(still||!window.gsap){ $$('.reveal').forEach(e=>e.style.opacity=1); return; }
+  if(still||!window.gsap){$$('.reveal').forEach(e=>{e.style.opacity=1;});return;}
   $$('.reveal').forEach(el=>gsap.from(el,{opacity:0,y:34,duration:1,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 90%',toggleActions:'play none none none'}}));
 }
-/* form -> mailto */
+
+/* order form -> mailto */
 $('#form').addEventListener('submit',e=>{
   e.preventDefault();
   const f=Object.fromEntries(new FormData(e.target));
   const fs=$('#fs');
-  if(!f.name||!f.contact){ fs.style.color='#ff9f0a'; fs.textContent='Please add your name and a phone or email.'; return; }
+  if(!f.name||!f.contact){fs.style.color='#ff9f0a';fs.textContent='Please add your name and a phone or email.';return;}
   const body='Name: '+f.name+'%0AContact: '+f.contact+'%0ABurger: '+f.burger+' ('+f.mode+')%0ANotes: '+(f.notes||'—');
-  location.href='mailto:'+FORM.to+'?subject=Burger order — '+encodeURIComponent(f.burger)+'&body='+body;
-  fs.style.color='#30d158'; fs.textContent='Your email app should open. Press send to finish.';
+  location.href='mailto:'+FORM.to+'?subject='+encodeURIComponent('Burger order — '+f.burger)+'&body='+body;
+  fs.style.color='#30d158';fs.textContent='Your email app should open. Press send to finish.';
 });
-$$('[data-pick]').forEach(b=>b.addEventListener('click',()=>{ $('#burger').value=b.dataset.pick; $('#order').scrollIntoView({behavior:rmQ.matches?'auto':'smooth'}); }));
+$$('[data-pick]').forEach(b=>b.addEventListener('click',()=>{$('#burger').value=b.dataset.pick;$('#order').scrollIntoView({behavior:rmQ.matches?'auto':'smooth'});}));
 
+/* boot */
 (async()=>{
-  if(still) document.documentElement.classList.add('rm');
+  if(still)document.documentElement.classList.add('rm');
   document.documentElement.classList.add('loading');
-  try{ frames=await loadZip(); }catch(err){ showError(err&&err.message?err.message:String(err)); document.documentElement.classList.remove('loading'); return; }
+  if(!window.JSZip){showError('JSZip failed to load (CDN).');document.documentElement.classList.remove('loading');return;}
+  try{frames=await loadZip();}catch(e){showError(e&&e.message?e.message:String(e));document.documentElement.classList.remove('loading');return;}
   setProgress(1);
   layout();
-  if(still){ render(Math.round(frames.length/2)-1); }
-  else{ animate(); if(CONFIG.fx.dust) dust(); }
+  if(still){render(0);}
+  else{animate();if(CONFIG.fx.dust)dust();}
   reveals();
-  addEventListener('resize',()=>{ layout(); if(!still&&window.ScrollTrigger)ScrollTrigger.refresh(); });
+  addEventListener('resize',()=>{layout();if(!still&&window.ScrollTrigger)ScrollTrigger.refresh();});
   document.documentElement.classList.remove('loading');
   $('#loader').classList.add('done');
-  if(!still) ScrollTrigger.refresh();
-  const fab=$('#fab'), ord=$('#order');
-  addEventListener('scroll',()=>{ const r=ord.getBoundingClientRect(); fab.classList.toggle('show',scrollY>innerHeight*.9&&r.top>innerHeight*.8); },{passive:true});
+  if(!still)ScrollTrigger.refresh();
+  const fab=$('#fab'),ord=$('#order');
+  addEventListener('scroll',()=>{const r=ord.getBoundingClientRect();fab.classList.toggle('show',scrollY>innerHeight*.9&&r.top>innerHeight*.8);},{passive:true});
 })();
 })();
 </script>
