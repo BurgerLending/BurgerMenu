@@ -63,6 +63,14 @@ mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),l
 /* landing sections */
 .sec{position:relative;overflow:hidden;padding:clamp(4.5rem,11vw,8rem) 0;border-top:1px solid var(--line)}
 .sec.alt{background:var(--bg2)}
+/* vignette over each section so background photos melt into it */
+.sec::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+background:radial-gradient(ellipse 95% 85% at 50% 50%,transparent 42%,rgba(5,9,13,.5) 74%,rgba(5,9,13,.92) 100%),
+linear-gradient(to bottom,rgba(5,9,13,.85),transparent 12%,transparent 88%,rgba(5,9,13,.85)),
+linear-gradient(to right,rgba(5,9,13,.8),transparent 10%,transparent 90%,rgba(5,9,13,.8))}
+.sec.alt::after{background:radial-gradient(ellipse 95% 85% at 50% 50%,transparent 42%,rgba(12,18,24,.5) 74%,rgba(12,18,24,.92) 100%),
+linear-gradient(to bottom,rgba(12,18,24,.85),transparent 12%,transparent 88%,rgba(12,18,24,.85)),
+linear-gradient(to right,rgba(12,18,24,.8),transparent 10%,transparent 90%,rgba(12,18,24,.8))}
 .eyebrow{display:flex;align-items:center;gap:.8rem;margin-bottom:1.2rem;font-size:.78rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--y)}
 .eyebrow:after{content:"";height:1px;width:3rem;background:var(--y);opacity:.6}
 .t{font-size:clamp(2.4rem,7.2vw,5.6rem);font-weight:800;text-transform:uppercase;letter-spacing:-.035em;line-height:.93;text-wrap:balance;max-width:12em}
@@ -70,9 +78,9 @@ mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),l
 .btn{display:inline-flex;align-items:center;justify-content:center;padding:1rem 1.9rem;border-radius:8px;background:var(--y);color:#111;font-size:.9rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;transition:background .2s,transform .2s,color .2s}
 .btn:hover{background:#fff;transform:translateY(-2px)}
 .btn.ghost{background:transparent;color:#fff;border:2px solid #fff}.btn.ghost:hover{background:#fff;color:#111}
+/* background photos: STATIC (no floating), big, blended by the section vignette */
 .floats{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
-.floats img{position:absolute;opacity:.9;mix-blend-mode:screen;-webkit-mask-image:radial-gradient(closest-side,#000 62%,transparent 100%);mask-image:radial-gradient(closest-side,#000 62%,transparent 100%);animation:floaty 8s ease-in-out infinite alternate}
-@keyframes floaty{from{transform:translateY(-10px) rotate(-3deg)}to{transform:translateY(12px) rotate(3deg)}}
+.floats img{position:absolute;opacity:.85;mix-blend-mode:screen;-webkit-mask-image:radial-gradient(closest-side,#000 48%,transparent 100%);mask-image:radial-gradient(closest-side,#000 48%,transparent 100%)}
 .scene{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;opacity:.5}
 .scene:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,var(--bg),rgba(5,9,13,.6) 30%,rgba(5,9,13,.6) 70%,var(--bg))}
 .final{min-height:100svh;display:flex;align-items:center;text-align:left;border-top:0}.final .wrap{width:100%}
@@ -81,7 +89,9 @@ mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),l
 .stats{display:grid;grid-template-columns:repeat(2,1fr);margin-top:3.4rem;border:1px solid var(--line);background:rgba(5,9,13,.55)}
 .stats div{padding:1.3rem 1.4rem;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
 .stats b{display:block;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-.04em;line-height:1}.stats span{display:block;margin-top:.5rem;color:var(--grey);font-size:.9rem}
-.mq{overflow:hidden;white-space:nowrap;background:var(--y);color:#111;padding:.75rem 0}
+/* marquee banner with side vignette */
+.mq{position:relative;overflow:hidden;white-space:nowrap;background:var(--y);color:#111;padding:.75rem 0}
+.mq::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(5,9,13,.55),transparent 10%,transparent 90%,rgba(5,9,13,.55))}
 .mq div{display:inline-flex;width:max-content;animation:mq 34s linear infinite}
 .mq span{font-size:clamp(1.5rem,3.6vw,2.8rem);font-weight:900;letter-spacing:-.02em;text-transform:uppercase;padding-right:1.6rem}.mq em{font-style:normal;margin-right:1.6rem}
 @keyframes mq{to{transform:translateX(-50%)}}
@@ -144,7 +154,7 @@ footer .wrap{display:grid;gap:1.6rem;grid-template-columns:repeat(3,1fr)}footer 
 .rm .stage{height:auto;padding:calc(var(--nav) + 1.5rem) 0 2rem}.rm .frame{position:relative;left:auto;top:auto;translate:none;margin:0 auto;width:min(100%,1000px);aspect-ratio:16/9}
 .rm .fx,.rm .hint,.rm #dust{display:none}.rm .steps{position:static;padding:1rem 1.5rem 0;max-width:760px;margin:0 auto}.rm .step{position:static;display:block;opacity:1;visibility:visible;margin-bottom:2rem}.rm .step .in{text-align:left;width:auto}.rm .step .in:before{display:none}.rm .step h2{font-size:clamp(1.7rem,4.4vw,2.6rem)}
 .rm .handoff{position:relative;inset:auto;opacity:1;visibility:visible;padding:2.5rem 1.5rem 0;pointer-events:auto}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fx-glow,.fx-sheen,.hint svg,.floats img,.mq div,.ing.on img{animation:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fx-glow,.fx-sheen,.hint svg,.mq div,.ing.on img{animation:none}}
 </style>
 </head>
 <body>
@@ -279,30 +289,28 @@ footer .wrap{display:grid;gap:1.6rem;grid-template-columns:repeat(3,1fr)}footer 
 (()=>{'use strict';
 /* ---------- settings ---------- */
 const CONFIG={
-  /* ZIP with frames lives in the repo root; the page can sit one folder deeper, so ".." = repo root */
   zipUrls:['../ezgif-7108051e0c153ae9-jpg.zip','ezgif-7108051e0c153ae9-jpg.zip','../assets/ezgif-7108051e0c153ae9-jpg.zip','assets/ezgif-7108051e0c153ae9-jpg.zip','../assets/burger-frames.zip','assets/burger-frames.zip'],
-  /* the photo pack can stay zipped: it is read straight from the archive */
   photoZips:['../burger-photos.zip','burger-photos.zip','../assets/burger-photos.zip','assets/burger-photos.zip'],
   imageDirs:['../image/','image/','images/','../images/'],
   imageExts:['jpg','png'],
   pxPerFrame:14,
   scrub:1,
-  frameScale:{landscape:.7,portrait:.8},   /* smaller frame = soft pixels less visible */
+  frameScale:{landscape:.7,portrait:.8},
   fx:{dust:true,push:true},
-  handoff:.35,          /* length of the title handoff beat, in timeline units */
+  handoff:.35,
   inline:null,
   photos:null
 };
 const COPY=[[.03,.19],[.21,.38],[.40,.58],[.60,.78],[.80,.96]];
 const FORM={to:'hello@signatureburger.example'};
-const FB={}; /* built-in fallbacks removed: photos come from burger-photos.zip / image/ */
+const FB={};
 const BLANK="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
-/* background float photos — BIG so they actually read */
+/* background photos: ALL big, onion & pickles included; positions keep them half-off-edge */
 const FLOATS={
-  overview:[['sesame',{right:'4%',top:'6%',w:'26vmax'}],['pickle',{right:'10%',bottom:'4%',w:'20vmax'}]],
-  ingredients:[['tomato',{left:'-6%',top:'2%',w:'30vmax'}],['sesame',{right:'-4%',top:'0%',w:'24vmax'}]],
-  menu:[['pickle',{right:'-2%',top:'4%',w:'22vmax'}],['onion',{left:'-6%',bottom:'2%',w:'26vmax'}]],
-  order:[['tomato',{right:'-3%',top:'6%',w:'28vmax'}],['lettuce',{left:'-6%',bottom:'0%',w:'30vmax'}]]
+  overview:[['sesame',{right:'2%',top:'4%',w:'30vmax'}],['pickle',{right:'8%',bottom:'2%',w:'26vmax'}]],
+  ingredients:[['tomato',{left:'-8%',top:'0%',w:'34vmax'}],['sesame',{right:'-6%',top:'-2%',w:'28vmax'}]],
+  menu:[['pickle',{right:'-4%',top:'2%',w:'30vmax'}],['onion',{left:'-8%',bottom:'0%',w:'32vmax'}]],
+  order:[['tomato',{right:'-5%',top:'4%',w:'32vmax'}],['lettuce',{left:'-8%',bottom:'-2%',w:'34vmax'}]]
 };
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const rmQ=matchMedia('(prefers-reduced-motion: reduce)');
@@ -312,7 +320,6 @@ let frames=[],current=0,pMax=0;
 
 function setProgress(p){pMax=Math.max(pMax,Math.min(1,p));$('#lbar').style.transform='scaleX('+pMax+')';$('#lpct').textContent=Math.round(pMax*100)+'%';}
 function showError(m){const w=$('#lwarn');if(w){w.textContent=m;w.style.display='block';}$('#lpct').textContent='—';}
-/* fixed regex: lookahead group is properly closed */
 function num(name){
   const base=String(name).split('/').pop();
   const m=base.match(/(\d+)(?=\.[a-z0-9]+$)/i);
@@ -372,12 +379,13 @@ async function doProbe(name){
 }
 function probe(name){if(CONFIG.photos&&CONFIG.photos[name])return Promise.resolve(CONFIG.photos[name]);return imgCache[name]||(imgCache[name]=(queue=queue.then(async()=>{await photoZipReady;return zipPhotos[name]||doProbe(name);})));}
 function ingredientPhotos(){$$('img[data-ing]').forEach(async el=>{const k=el.dataset.ing;el.src=FB[k]||BLANK;const u=await probe('ing-'+k);if(u)el.src=u;});}
+/* floaters: STATIC now — no animation, no random delay */
 async function floaters(){
   for(const sec of $$('[data-floats]')){
     for(const [name,o] of (FLOATS[sec.dataset.floats]||[])){
       const u=await probe('float-'+name);if(!u)continue;
       const im=document.createElement('img');im.src=u;im.alt='';im.setAttribute('aria-hidden','true');im.loading='lazy';
-      im.style.width=o.w;im.style.animationDelay=(-Math.random()*6)+'s';['left','right','top','bottom'].forEach(k=>{if(o[k])im.style[k]=o[k];});
+      im.style.width=o.w;['left','right','top','bottom'].forEach(k=>{if(o[k])im.style[k]=o[k];});
       sec.appendChild(im);
     }
   }
@@ -431,7 +439,7 @@ function dust(){
   }
   requestAnimationFrame(tick);
 }
-/* ---------- scroll animation (variant 1 handoff + sharp first step) ---------- */
+/* ---------- scroll animation (handoff + sharp first step) ---------- */
 function animate(){
   gsap.registerPlugin(ScrollTrigger);ScrollTrigger.config({ignoreMobileResize:true});
   const H=CONFIG.handoff,state={f:0},len=frames.length*CONFIG.pxPerFrame;
@@ -439,7 +447,7 @@ function animate(){
   tl.to(state,{f:frames.length-1,duration:1,snap:{f:1},onUpdate:()=>{const i=Math.round(state.f);if(i!==current)render(i);}},0);
   if(CONFIG.fx.push)tl.fromTo('#frame',{scale:1},{scale:1.06,duration:1},0);
   $$('.step').forEach((el,k)=>{const w=COPY[k]||[0,1],d=.035;
-    if(k===0){ /* first headline is sharp and visible from scroll 0 — no blur-in */
+    if(k===0){
       tl.set(el,{autoAlpha:1,y:0,filter:'blur(0px)'},0)
         .to(el,{autoAlpha:0,y:-26,filter:'blur(8px)',duration:d,ease:'power2.in'},w[1]-d);
     }else{
@@ -447,11 +455,9 @@ function animate(){
         .to(el,{autoAlpha:0,y:-26,filter:'blur(8px)',duration:d,ease:'power2.in'},w[1]-d);
     }});
   tl.to('#hint',{autoAlpha:0,duration:.03},.01);
-  /* handoff: exploded burger dims to a backdrop, giant title rides in */
   tl.to('#frame',{opacity:.22,scale:.96,duration:H*.8,ease:'power2.out'},1);
   tl.fromTo('#handoff',{autoAlpha:0,y:46,scale:.97},{autoAlpha:1,y:0,scale:1,duration:H*.8,ease:'power3.out'},1+H*.2);
 }
-/* same film without GSAP, if no CDN works */
 function nativeAnimate(){
   const H=CONFIG.handoff,len=frames.length*CONFIG.pxPerFrame*(1+H),wrap=document.createElement('div');
   wrap.style.height=(len+innerHeight)+'px';$('#stage').parentNode.insertBefore(wrap,$('#stage'));wrap.appendChild($('#stage'));$('#stage').style.position='sticky';$('#stage').style.top='0';
