@@ -37,17 +37,6 @@ section[id]{scroll-margin-top:var(--nav)}
 .frame canvas{display:block;width:100%;height:100%;filter:contrast(1.06) saturate(1.08);
 -webkit-mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(to bottom,transparent,#000 6%,#000 86%,transparent);-webkit-mask-composite:source-in;
 mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(to bottom,transparent,#000 6%,#000 86%,transparent);mask-composite:intersect}
-
-/* ===== МОБИЛЬНАЯ ОПТИМИЗАЦИЯ: canvas на весь экран, без маски ===== */
-@media(max-width:768px) and (orientation:portrait){
-  .frame canvas{
-    -webkit-mask-image:none!important;
-    mask-image:none!important;
-    -webkit-mask-composite:source-over!important;
-    mask-composite:add!important;
-  }
-}
-
 .fx{position:absolute;inset:0;pointer-events:none}
 .fx-glow{z-index:0;background:radial-gradient(ellipse 34% 44% at 50% 54%,rgba(255,150,60,.2),transparent 72%),radial-gradient(ellipse 70% 40% at 50% 100%,rgba(70,110,170,.14),transparent 70%);animation:breathe 7s ease-in-out infinite}
 @keyframes breathe{0%,100%{opacity:.75}50%{opacity:1}}
@@ -57,6 +46,8 @@ mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),l
 .fx-vig{z-index:3;background:linear-gradient(to right,rgba(0,0,0,.9),rgba(0,0,0,.55) 14%,rgba(0,0,0,.2) 28%,transparent 38%,transparent 62%,rgba(0,0,0,.2) 72%,rgba(0,0,0,.55) 86%,rgba(0,0,0,.9)),linear-gradient(to bottom,rgba(0,0,0,.85),rgba(0,0,0,.5) 12%,rgba(0,0,0,.18) 24%,transparent 34%,transparent 66%,rgba(0,0,0,.18) 76%,rgba(0,0,0,.5) 88%,rgba(0,0,0,.85)),radial-gradient(ellipse 72% 64% at 50% 50%,transparent 26%,rgba(0,0,0,.55) 60%,rgba(0,0,0,.95) 100%)}
 .fx-sheen{z-index:4;opacity:.9;background:linear-gradient(112deg,transparent 42%,rgba(255,255,255,.075) 50%,transparent 58%);background-size:280% 100%;background-position:130% 0;animation:sheen 10s ease-in-out infinite}
 @keyframes sheen{0%,50%{background-position:130% 0}85%,100%{background-position:-40% 0}}
+/* MOBILE: no film effects at all */
+@media(max-width:767px){.fx,#dust{display:none!important}}
 /* copy steps */
 .steps{position:absolute;inset:var(--nav) 0 0;z-index:6;pointer-events:none}
 .step{position:absolute;inset:0;display:grid;place-items:center;opacity:0;visibility:hidden}
@@ -250,9 +241,9 @@ footer .wrap{display:grid;gap:1.6rem;grid-template-columns:repeat(3,1fr)}footer 
     <p class="eyebrow reveal">Early guests</p>
     <h2 class="t reveal">Said after the <span class="y">first bite.</span></h2>
     <div class="quotes reveal">
-      <div class="q"><div class="st">★★★★★</div><p>"The patty is properly seared and the cheese is actually melted. It tastes like someone cared."</p><span>Maya R.</span></div>
-      <div class="q"><div class="st">★★★★★</div><p>"Fresh lettuce, a bun that holds together and a sauce that doesn't drown everything."</p><span>Daniel K.</span></div>
-      <div class="q"><div class="st">★★★★★</div><p>"Ready in minutes and hot all the way through. This is my new lunch spot."</p><span>Sofia L.</span></div>
+      <div class="q"><div class="st">★★★★★</div><p>“The patty is properly seared and the cheese is actually melted. It tastes like someone cared.”</p><span>Maya R.</span></div>
+      <div class="q"><div class="st">★★★★★</div><p>“Fresh lettuce, a bun that holds together and a sauce that doesn't drown everything.”</p><span>Daniel K.</span></div>
+      <div class="q"><div class="st">★★★★★</div><p>“Ready in minutes and hot all the way through. This is my new lunch spot.”</p><span>Sofia L.</span></div>
     </div>
   </div>
 </section>
@@ -323,6 +314,7 @@ const FLOATS={
 };
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const rmQ=matchMedia('(prefers-reduced-motion: reduce)');
+const mobQ=matchMedia('(max-width: 767px)');   /* mobile = no film effects, smaller frame */
 let still=false;
 const canvas=$('#c'),ctx=canvas.getContext('2d'),frameBox=$('#frame');
 let frames=[],current=0,pMax=0;
@@ -363,6 +355,7 @@ async function loadFrames(){
   }
   throw lastErr||new Error('ZIP not found');
 }
+/* ---------- photos from zip or folder ---------- */
 const imgCache={};let knownDir=null,queue=Promise.resolve(),zipPhotos={};
 let photoZipReady=Promise.resolve();
 const startPhotoZip=()=>(async()=>{
@@ -404,59 +397,24 @@ async function scenes(){
     const host=$(sel);host.insertBefore(d,host.firstChild);
   }
 }
-
-/* ---------- canvas (МОБИЛЬНАЯ ОПТИМИЗАЦИЯ: полный экран) ---------- */
+/* ---------- canvas: mobile = contained & smaller, desktop = as before ---------- */
 function layout(){
   const vw=innerWidth,vh=innerHeight,dpr=Math.min(devicePixelRatio||1,2);
-  const isMobile=vw<768&&vw/vh<1;
-  let H,W;
-  if(still){
-    W=Math.min(vw,1000);H=W*9/16;
-    frameBox.style.width=W+'px';frameBox.style.height=H+'px';
-  } else {
-    if(isMobile){
-      /* На мобильном: фрейм = весь вьюпорт */
-      W=vw;H=vh;
-      frameBox.style.width=W+'px';
-      frameBox.style.height=H+'px';
-    } else {
-      const portrait=vw/vh<1;
-      H=portrait?Math.min(vh*.96,vw*CONFIG.frameScale.portrait*9/16):vh*CONFIG.frameScale.landscape;
-      W=H*16/9;
-      frameBox.style.width=W+'px';frameBox.style.height=H+'px';
-    }
-  }
+  let W,H;
+  if(still){W=Math.min(vw,1000);H=W*9/16;}
+  else if(mobQ.matches&&vw/vh<1){W=vw*.92;H=W*9/16;}           /* mobile portrait: fits width, not oversized */
+  else{const portrait=vw/vh<1;H=portrait?Math.min(vh*.96,vw*CONFIG.frameScale.portrait*9/16):vh*CONFIG.frameScale.landscape;W=H*16/9;}
+  frameBox.style.width=W+'px';frameBox.style.height=H+'px';
   const cw=Math.round(W*dpr),chh=Math.round(H*dpr);
   if(canvas.width!==cw||canvas.height!==chh){canvas.width=cw;canvas.height=chh;}
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';render(current);
 }
-
-/* ---------- render (МОБИЛЬНАЯ ОПТИМИЗАЦИЯ: cover-режим) ---------- */
 function render(i){
   if(!frames.length)return;
   current=Math.max(0,Math.min(frames.length-1,Math.round(i)));
   const im=frames[current];
-  if(im&&im.complete&&im.naturalWidth){
-    const isMobile=innerWidth<768&&innerWidth/innerHeight<1;
-    if(isMobile){
-      /* Cover: обрезаем исходник по центру, чтобы заполнить весь canvas */
-      const imgR=im.naturalWidth/im.naturalHeight;
-      const canR=canvas.width/canvas.height;
-      let sx,sy,sw,sh;
-      if(imgR>canR){
-        /* Исходник шире canvas — обрезаем бока */
-        sh=im.naturalHeight;sw=sh*canR;sx=(im.naturalWidth-sw)/2;sy=0;
-      }else{
-        /* Исходник выше canvas — обрезаем верх/низ */
-        sw=im.naturalWidth;sh=sw/canR;sx=0;sy=(im.naturalHeight-sh)/2;
-      }
-      ctx.drawImage(im,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
-    }else{
-      ctx.drawImage(im,0,0,canvas.width,canvas.height);
-    }
-  }
+  if(im&&im.complete&&im.naturalWidth)ctx.drawImage(im,0,0,canvas.width,canvas.height);
 }
-
 /* ---------- dust ---------- */
 function dust(){
   const cv=$('#dust'),g=cv.getContext('2d');
@@ -491,7 +449,7 @@ function animate(){
   const H=CONFIG.handoff,state={f:0},len=frames.length*CONFIG.pxPerFrame;
   const tl=gsap.timeline({defaults:{ease:'none'},scrollTrigger:{trigger:'#stage',start:'top top',end:()=>'+='+Math.round(len*(1+H)),scrub:CONFIG.scrub,pin:true,anticipatePin:1,invalidateOnRefresh:true}});
   tl.to(state,{f:frames.length-1,duration:1,snap:{f:1},onUpdate:()=>{const i=Math.round(state.f);if(i!==current)render(i);}},0);
-  if(CONFIG.fx.push)tl.fromTo('#frame',{scale:1},{scale:1.06,duration:1},0);
+  if(CONFIG.fx.push&&!mobQ.matches)tl.fromTo('#frame',{scale:1},{scale:1.06,duration:1},0);   /* push-in: desktop only */
   $$('.step').forEach((el,k)=>{const w=COPY[k]||[0,1],d=.035;
     if(k===0){
       tl.set(el,{autoAlpha:1,y:0,filter:'blur(0px)'},0)
@@ -513,7 +471,7 @@ function nativeAnimate(){
   (function tick(){cur+=(target-cur)*.14;if(Math.abs(target-cur)<1e-4)cur=target;
     const q=cur*(1+H),fp=Math.min(1,q),hp=Math.max(0,Math.min(1,(q-1)/H));
     render(fp*(frames.length-1));
-    if(CONFIG.fx.push)fr.style.scale=String(1+.06*fp-.10*hp);
+    if(CONFIG.fx.push&&!mobQ.matches)fr.style.scale=String(1+.06*fp-.10*hp);
     fr.style.opacity=String(1-.78*hp);
     steps.forEach((el,k)=>{const w=COPY[k]||[0,1],d=.035;let o;
       if(k===0){o=fp<=w[1]-d?1:Math.max(0,1-(fp-(w[1]-d))/d);}
@@ -566,6 +524,9 @@ $('#form').addEventListener('submit',e=>{
 $$('[data-pick]').forEach(b=>b.addEventListener('click',()=>{$('#burger').value=b.dataset.pick;$('#order').scrollIntoView({behavior:rmQ.matches?'auto':'smooth'});}));
 /* ---------- boot ---------- */
 (async()=>{
+  /* always open at the very top (mobile browsers love restoring mid-scroll) */
+  if('scrollRestoration' in history)history.scrollRestoration='manual';
+  window.scrollTo(0,0);
   document.documentElement.classList.add('js','loading');
   const force=/[?&]motion=1/.test(location.search);
   await ensureLibs();
@@ -578,10 +539,11 @@ $$('[data-pick]').forEach(b=>b.addEventListener('click',()=>{$('#burger').value=
   setProgress(1);
   layout();
   if(still){render(0);diag('Animation is paused because your device has "Reduce motion" turned on.','Play animation',()=>{location.search='?motion=1';});}
-  else{if(window.gsap&&window.ScrollTrigger)animate();else nativeAnimate();if(CONFIG.fx.dust)dust();}
+  else{if(window.gsap&&window.ScrollTrigger)animate();else nativeAnimate();if(CONFIG.fx.dust&&!mobQ.matches)dust();}
   reveals();ingredientDeck();floaters();scenes();
   addEventListener('resize',()=>{layout();if(!still&&window.ScrollTrigger)ScrollTrigger.refresh();});
   document.documentElement.classList.remove('loading');$('#loader').classList.add('done');
+  window.scrollTo(0,0);
   if(!still&&window.ScrollTrigger)ScrollTrigger.refresh();
   const fab=$('#fab'),ord=$('#order');
   addEventListener('scroll',()=>{const r=ord.getBoundingClientRect();fab.classList.toggle('show',scrollY>innerHeight*.9&&r.top>innerHeight*.8);},{passive:true});
