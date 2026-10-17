@@ -288,6 +288,12 @@ footer .wrap{display:grid;gap:1.6rem;grid-template-columns:repeat(3,1fr)}footer 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 (()=>{'use strict';
+/* ========== MOBILE START FIX: always open at the very top / first frame ========== */
+if('scrollRestoration' in history)history.scrollRestoration='manual';
+window.scrollTo(0,0);
+addEventListener('load',()=>window.scrollTo(0,0),{once:true});
+addEventListener('pageshow',e=>{if(e.persisted)window.scrollTo(0,0);});
+/* ================================================================================ */
 /* ---------- settings ---------- */
 const CONFIG={
   zipUrls:['../ezgif-7108051e0c153ae9-jpg.zip','ezgif-7108051e0c153ae9-jpg.zip','../assets/ezgif-7108051e0c153ae9-jpg.zip','assets/ezgif-7108051e0c153ae9-jpg.zip','../assets/burger-frames.zip','assets/burger-frames.zip'],
@@ -314,7 +320,7 @@ const FLOATS={
 };
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const rmQ=matchMedia('(prefers-reduced-motion: reduce)');
-const mobQ=matchMedia('(max-width: 767px)');   /* mobile = no film effects, smaller frame */
+const mobQ=matchMedia('(max-width: 767px)');
 let still=false;
 const canvas=$('#c'),ctx=canvas.getContext('2d'),frameBox=$('#frame');
 let frames=[],current=0,pMax=0;
@@ -402,7 +408,7 @@ function layout(){
   const vw=innerWidth,vh=innerHeight,dpr=Math.min(devicePixelRatio||1,2);
   let W,H;
   if(still){W=Math.min(vw,1000);H=W*9/16;}
-  else if(mobQ.matches&&vw/vh<1){W=vw*.92;H=W*9/16;}           /* mobile portrait: fits width, not oversized */
+  else if(mobQ.matches&&vw/vh<1){W=vw*.92;H=W*9/16;}
   else{const portrait=vw/vh<1;H=portrait?Math.min(vh*.96,vw*CONFIG.frameScale.portrait*9/16):vh*CONFIG.frameScale.landscape;W=H*16/9;}
   frameBox.style.width=W+'px';frameBox.style.height=H+'px';
   const cw=Math.round(W*dpr),chh=Math.round(H*dpr);
@@ -449,7 +455,7 @@ function animate(){
   const H=CONFIG.handoff,state={f:0},len=frames.length*CONFIG.pxPerFrame;
   const tl=gsap.timeline({defaults:{ease:'none'},scrollTrigger:{trigger:'#stage',start:'top top',end:()=>'+='+Math.round(len*(1+H)),scrub:CONFIG.scrub,pin:true,anticipatePin:1,invalidateOnRefresh:true}});
   tl.to(state,{f:frames.length-1,duration:1,snap:{f:1},onUpdate:()=>{const i=Math.round(state.f);if(i!==current)render(i);}},0);
-  if(CONFIG.fx.push&&!mobQ.matches)tl.fromTo('#frame',{scale:1},{scale:1.06,duration:1},0);   /* push-in: desktop only */
+  if(CONFIG.fx.push&&!mobQ.matches)tl.fromTo('#frame',{scale:1},{scale:1.06,duration:1},0);
   $$('.step').forEach((el,k)=>{const w=COPY[k]||[0,1],d=.035;
     if(k===0){
       tl.set(el,{autoAlpha:1,y:0,filter:'blur(0px)'},0)
@@ -524,7 +530,6 @@ $('#form').addEventListener('submit',e=>{
 $$('[data-pick]').forEach(b=>b.addEventListener('click',()=>{$('#burger').value=b.dataset.pick;$('#order').scrollIntoView({behavior:rmQ.matches?'auto':'smooth'});}));
 /* ---------- boot ---------- */
 (async()=>{
-  /* always open at the very top (mobile browsers love restoring mid-scroll) */
   if('scrollRestoration' in history)history.scrollRestoration='manual';
   window.scrollTo(0,0);
   document.documentElement.classList.add('js','loading');
@@ -545,6 +550,7 @@ $$('[data-pick]').forEach(b=>b.addEventListener('click',()=>{$('#burger').value=
   document.documentElement.classList.remove('loading');$('#loader').classList.add('done');
   window.scrollTo(0,0);
   if(!still&&window.ScrollTrigger)ScrollTrigger.refresh();
+  window.scrollTo(0,0);   /* final guarantee: start at the very top on every device */
   const fab=$('#fab'),ord=$('#order');
   addEventListener('scroll',()=>{const r=ord.getBoundingClientRect();fab.classList.toggle('show',scrollY>innerHeight*.9&&r.top>innerHeight*.8);},{passive:true});
 })();
